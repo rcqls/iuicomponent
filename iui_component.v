@@ -19,6 +19,12 @@ pub struct IuiComponentParams {
 	window &iui.Window
 }
 
+pub struct State {
+pub mut:
+	window &iui.Window = 0
+	comps map[string]iui.Component
+}
+
 pub fn iui_canvaslayout(p IuiComponentParams) &ui.CanvasLayout {
 	mut layout := ui.canvas_plus(
 		id: ui.component_id(p.id, 'layout')
