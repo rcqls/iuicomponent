@@ -90,7 +90,7 @@ fn main() {
 				widths: ui.stretch
 				heights: ui.stretch
 				children: [
-					ui.button(text: "v ui")
+					ui.button(text: 'v ui'),
 					iuic.iui_canvaslayout(
 						window: window
 					),
@@ -138,7 +138,7 @@ fn btn_draw(mut win iui.Window, com &iui.Component) {
 
 	if mut this is iui.Button {
 		if this.is_mouse_rele {
-			on_click_fn(voidptr(0), mut this, voidptr(0))
+			on_click_fn(unsafe { nil }, mut this, unsafe { nil })
 		}
 	}
 }

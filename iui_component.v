@@ -21,8 +21,8 @@ pub struct IuiComponentParams {
 
 pub struct State {
 pub mut:
-	window &iui.Window = 0
-	comps map[string]iui.Component
+	window &iui.Window = unsafe { nil }
+	comps  map[string]iui.Component
 }
 
 pub fn iui_canvaslayout(p IuiComponentParams) &ui.CanvasLayout {
@@ -44,29 +44,31 @@ pub fn iui_canvaslayout(p IuiComponentParams) &ui.CanvasLayout {
 
 // component access
 pub fn iui_component(w ui.ComponentChild) &IuiComponent {
-	return &IuiComponent(w.component)
+	return unsafe { &IuiComponent(w.component) }
 }
 
 pub fn iui_component_from_id(w ui.Window, id string) &IuiComponent {
-	return iui_component(w.stack(ui.component_id(id, 'layout')))
+	return iui_component(w.get_or_panic[ui.Stack](ui.component_id(id, 'layout')))
 }
 
 fn iuic_init(layout &ui.CanvasLayout) {
 	mut iuic := iui_component(layout)
-	iuic.app.gg = layout.ui.gg
-	iuic.app.graphics_context.gg = layout.ui.gg
+	if layout.ui.dd is ui.DrawDeviceContext {
+		iuic.app.gg = &layout.ui.dd.Context
+		iuic.app.graphics_context.gg = &layout.ui.dd.Context
+	}
 }
 
-fn (mut iui IuiComponent) draw() {
+fn (mut iuic IuiComponent) draw(mut d ui.DrawDevice, c &ui.CanvasLayout) {
 	now := time.now().unix_time_milli()
 
 	// Sort by Z-index; Lower draw first
-	iui.app.components.sort(a.z_index < b.z_index)
+	iuic.app.components.sort(a.z_index < b.z_index)
 
 	// Draw components
 	// mut bar_drawn := false
-	for mut com in iui.app.components {
-		com.draw_event_fn(iui.app, com)
+	for mut com in iuic.app.components {
+		com.draw_event_fn(mut iuic.app, com)
 
 		// if com.z_index > 100 && iui.app.show_menu_bar && !bar_drawn {
 		// 	mut bar := iui.app.get_bar()
@@ -76,8 +78,8 @@ fn (mut iui IuiComponent) draw() {
 		// 	bar_drawn = true
 		// }
 
-		com.draw(iui.app.graphics_context)
-		com.after_draw_event_fn(iui.app, com)
+		com.draw(iuic.app.graphics_context)
+		com.after_draw_event_fn(mut iuic.app, com)
 	}
 
 	// Draw Menubar last
@@ -89,15 +91,15 @@ fn (mut iui IuiComponent) draw() {
 	// }
 
 	end := time.now().unix_time_milli()
-	if end - iui.app.last_update > 1000 {
-		iui.app.last_update = end
+	if end - iuic.app.last_update > 1000 {
+		iuic.app.last_update = end
 	}
-	iui.app.frame_time = int(end - now)
+	iuic.app.frame_time = int(end - now)
 }
 
-fn iuic_draw(d ui.DrawDevice, c &ui.CanvasLayout) {
+fn iuic_draw(mut d ui.DrawDevice, c &ui.CanvasLayout) {
 	mut iuic := iui_component(c)
-	iuic.draw()
+	iuic.draw(mut d, c)
 }
 
 fn iuic_on_delegate(c &ui.CanvasLayout, e &gg.Event) {

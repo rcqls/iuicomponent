@@ -6,6 +6,7 @@ const (
 	win_width  = 430
 	win_height = 50
 )
+
 [console]
 fn main() {
 	mut state := iuic.State{}
@@ -22,12 +23,10 @@ fn main() {
 				margin_: 10
 				widths: [ui.stretch, 230]
 				heights: ui.stretch
-				children: [
-					ui.button(id: 'btn', text: 'v ui'),
+				children: [ui.button(id: 'btn', text: 'v ui'),
 					iuic.iui_canvaslayout(
 						window: state.window
-					),
-				]
+					)]
 			),
 		]
 	)
@@ -47,12 +46,14 @@ fn create_iui(mut state iuic.State, x int, y int, width int, height int) {
 	lbl.pack()
 
 	// Create Count Button
-	btn := iui.button(window, 'Count', iui.ButtonConfig{
+	// Create Count Button
+	btn := iui.button(
+		text: 'Count'
 		bounds: iui.Bounds{64, 13, 0, 0}
 		click_event_fn: on_click
 		should_pack: true
 		user_data: &lbl
-	})
+	)
 
 	// Add to HBox
 	hbox.add_child(lbl)
@@ -61,7 +62,7 @@ fn create_iui(mut state iuic.State, x int, y int, width int, height int) {
 	window.add_child(hbox)
 	// register state
 	state.window = window
-	state.comps["lbl"] = lbl
+	state.comps['lbl'] = lbl
 }
 
 // on click event function
